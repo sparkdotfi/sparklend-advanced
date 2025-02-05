@@ -18,6 +18,10 @@ Please note all these oracles are designed for consumption by `AaveOracle` which
 
 [WEETHExchangeRateOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/WEETHExchangeRateOracle.sol): Provides weETH/USD by multiplying the weETH exchange rate by ETH/USD. Used for: weETH market
 
+[RSETHExchangeRateOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/RSETHExchangeRateOracle.sol): Provides rsETH/USD by multiplying the rsETH exchange rate by ETH/USD. Used for: rsETH market
+
+[EZETHExchangeRateOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/EZETHExchangeRateOracle.sol): Provides ezETH/USD by multiplying the ezETH exchange rate by ETH/USD. Used for: ezETH market
+
 [MorphoUpgradableOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/MorphoUpgradableOracle.sol): Allows Spark Governance to change an oracle for Morpho Blue markets. Planned to be used in Morpho Blue.
 
 ### Custom Interest Rate Strategies
