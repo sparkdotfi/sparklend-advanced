@@ -22,6 +22,7 @@ import { RETHExchangeRateOracle }             from "src/RETHExchangeRateOracle.s
 import { WSTETHExchangeRateOracle }           from "src/WSTETHExchangeRateOracle.sol";
 import { WEETHExchangeRateOracle }            from "src/WEETHExchangeRateOracle.sol";
 import { RSETHExchangeRateOracle }            from "src/RSETHExchangeRateOracle.sol";
+import { EZETHExchangeRateOracle }            from "src/EZETHExchangeRateOracle.sol";
 
 interface ITollLike {
     function kiss(address) external;
@@ -47,6 +48,7 @@ contract SparkLendMainnetIntegrationTest is Test {
     address RETH   = 0xae78736Cd615f374D3085123A210448E74Fc6393;
     address WEETH  = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address RSETH  = 0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7;
+    address EZETH  = 0xbf5495Efe5DB9ce00f80364C8B423567e58d2110;
     address SUSDS  = 0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD;
 
     address ETH_IRM       = 0xD7A8461e6aF708a086D8285f8fD900309336347c;
@@ -57,6 +59,7 @@ contract SparkLendMainnetIntegrationTest is Test {
     address RETH_ORACLE   = 0x05225Cd708bCa9253789C1374e4337a019e99D56;
     address WSTETH_ORACLE = 0x8B6851156023f4f5A66F68BEA80851c3D905Ac93;
     address RSETH_ORACLE  = 0x349A73444b1a310BAe67ef67973022020d70020d;
+    address EZETH_ORACLE  = 0x74a09653A083691711cF8215a6ab074BB4e99ef5;
 
     address LST_RATE_SOURCE = 0x08669C836F41AEaD03e3EF81a59f3b8e72EC417A;
 
@@ -370,6 +373,31 @@ contract SparkLendMainnetIntegrationTest is Test {
 
         assertEq(aaveOracle.getAssetPrice(RSETH),    price);
         assertEq(aaveOracle.getSourceOfAsset(RSETH), address(oracle));
+    }
+
+    function test_ezeth_market_oracle() public {
+        EZETHExchangeRateOracle oracle = new EZETHExchangeRateOracle(EZETH_ORACLE, ETHUSD_ORACLE);
+
+        vm.expectRevert();  // Not setup yet
+        assertEq(aaveOracle.getAssetPrice(EZETH),    0);
+        assertEq(aaveOracle.getSourceOfAsset(EZETH), address(0));
+
+        address[] memory assets = new address[](1);
+        assets[0] = EZETH;
+        address[] memory sources = new address[](1);
+        sources[0] = address(oracle);
+
+        vm.prank(ADMIN);
+        aaveOracle.setAssetSources(
+            assets,
+            sources
+        );
+
+        // Nothing is special about this number, it just happens to be the price at this block
+        uint256 price = 3135.93175044e8;
+
+        assertEq(aaveOracle.getAssetPrice(EZETH),    price);
+        assertEq(aaveOracle.getSourceOfAsset(EZETH), address(oracle));
     }
 
     /**********************************************************************************************/
