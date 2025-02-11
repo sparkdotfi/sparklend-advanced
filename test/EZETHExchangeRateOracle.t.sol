@@ -16,7 +16,7 @@ contract EZETHOracleMock {
         exchangeRate = _exchangeRate;
     }
 
-    function calculateTVLs() external view returns (uint256[][] memory , uint256[] memory, uint256 _exchangeRate) {
+    function calculateTVLs() external view returns (uint256[][] memory, uint256[] memory, uint256 _exchangeRate) {
         _exchangeRate = exchangeRate;
     }
 
