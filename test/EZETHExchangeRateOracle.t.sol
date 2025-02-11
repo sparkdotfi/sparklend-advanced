@@ -20,7 +20,7 @@ contract EZETHOracleMock {
         _exchangeRate = exchangeRate;
     }
 
-    function totalSupply() external view returns (uint256) {
+    function totalSupply() external pure returns (uint256) {
         return 1e18;
     }
 
@@ -74,7 +74,7 @@ contract EZETHExchangeRateOracleTest is Test {
         ezethOracle.setExchangeRate(0);
         assertEq(oracle.latestAnswer(), 0);
     }
-    
+
     function test_latestAnswer() public {
         // 1.2 * 2000 = 2400
         assertEq(oracle.latestAnswer(), 2400e8);

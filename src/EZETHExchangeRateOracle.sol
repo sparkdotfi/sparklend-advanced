@@ -39,7 +39,7 @@ contract EZETHExchangeRateOracle {
 
     function latestAnswer() external view returns (int256) {
         int256 ethUsd       = ethSource.latestAnswer();
-        (, , uint256 tvl)   = oracle.calculateTVLs();
+        ( ,, uint256 tvl )   = oracle.calculateTVLs();
         int256 exchangeRate = int256(((tvl * 1e18) / ezETH.totalSupply()));
 
         if (ethUsd <= 0 || exchangeRate <= 0) {
