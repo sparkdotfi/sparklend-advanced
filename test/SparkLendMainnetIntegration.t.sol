@@ -408,8 +408,8 @@ contract SparkLendMainnetIntegrationTest is Test {
         SPETHExchangeRateOracle oracle = new SPETHExchangeRateOracle(SPETH, ETHUSD_ORACLE);
 
         vm.expectRevert(); // SPETH not yet added on SparkLend
-        assertEq(aaveOracle.getAssetPrice(SPETH),       0);
-        assertEq(aaveOracle.getSourceOfAsset(SPETH),    address(0));
+        assertEq(aaveOracle.getAssetPrice(SPETH),    0);
+        assertEq(aaveOracle.getSourceOfAsset(SPETH), address(0));
 
         address[] memory assets = new address[](1);
         assets[0] = SPETH;

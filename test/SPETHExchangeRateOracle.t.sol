@@ -93,7 +93,7 @@ contract SPETHExchangeRateOracleTest is Test {
         speth.setExchangeRate(exchangeRate);
         ethSource.setLatestAnswer(int256(ethPrice));
 
-        int256 result = oracle.latestAnswer();
+        int256 result   = oracle.latestAnswer();
         int256 expected = int256(exchangeRate) * int256(ethPrice) / 1e18;
 
         assertEq(result, expected);
