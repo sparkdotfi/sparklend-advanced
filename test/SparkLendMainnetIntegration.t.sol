@@ -23,6 +23,7 @@ import { WSTETHExchangeRateOracle }           from "src/WSTETHExchangeRateOracle
 import { WEETHExchangeRateOracle }            from "src/WEETHExchangeRateOracle.sol";
 import { RSETHExchangeRateOracle }            from "src/RSETHExchangeRateOracle.sol";
 import { EZETHExchangeRateOracle }            from "src/EZETHExchangeRateOracle.sol";
+import { SPETHExchangeRateOracle }            from "src/SPETHExchangeRateOracle.sol";
 
 interface ITollLike {
     function kiss(address) external;
@@ -50,6 +51,7 @@ contract SparkLendMainnetIntegrationTest is Test {
     address RSETH  = 0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7;
     address EZETH  = 0xbf5495Efe5DB9ce00f80364C8B423567e58d2110;
     address SUSDS  = 0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD;
+    address SPETH  = 0xfE6eb3b609a7C8352A241f7F3A21CEA4e9209B8f;
 
     address ETH_IRM       = 0xD7A8461e6aF708a086D8285f8fD900309336347c;
     address USDC_ORACLE   = 0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6;
@@ -398,6 +400,34 @@ contract SparkLendMainnetIntegrationTest is Test {
 
         assertEq(aaveOracle.getAssetPrice(EZETH),    price);
         assertEq(aaveOracle.getSourceOfAsset(EZETH), address(oracle));
+    }
+
+    function test_speth_market_oracle() public {
+        vm.createSelectFork(getChain("mainnet").rpcUrl, 24318543);  // Jan 26, 2026
+
+        SPETHExchangeRateOracle oracle = new SPETHExchangeRateOracle(SPETH, ETHUSD_ORACLE);
+
+        vm.expectRevert(); // SPETH not yet added on SparkLend
+        assertEq(aaveOracle.getAssetPrice(SPETH),       0);
+        assertEq(aaveOracle.getSourceOfAsset(SPETH),    address(0));
+
+        address[] memory assets = new address[](1);
+        assets[0] = SPETH;
+
+        address[] memory sources = new address[](1);
+        sources[0] = address(oracle);
+
+        vm.prank(ADMIN);
+        aaveOracle.setAssetSources(
+            assets,
+            sources
+        );
+
+        // spETH Price (USD) at this block
+        uint256 price = 2904.01656577e8;
+
+        assertEq(aaveOracle.getAssetPrice(SPETH),    price);
+        assertEq(aaveOracle.getSourceOfAsset(SPETH), address(oracle));
     }
 
     /**********************************************************************************************/
