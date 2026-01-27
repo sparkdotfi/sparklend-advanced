@@ -102,8 +102,8 @@ contract RETHRatioOracleTest is Test {
         uint256 exchangeRate
     ) external {
         // Bound to realistic ranges to avoid overflow
-        marketPrice  = bound(marketPrice, 1, 100e18);
-        exchangeRate = bound(exchangeRate,     1, 100e18);
+        marketPrice  = bound(marketPrice,  1, 100e18);
+        exchangeRate = bound(exchangeRate, 1, 100e18);
 
         reth.setExchangeRate(exchangeRate);
         rethETHFeed.setLatestAnswer(int256(marketPrice));

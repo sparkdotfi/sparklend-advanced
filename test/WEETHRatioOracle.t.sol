@@ -102,8 +102,8 @@ contract WEETHRatioOracleTest is Test {
         uint256 exchangeRate
     ) external {
         // Bound to realistic ranges to avoid overflow
-        marketPrice  = bound(marketPrice, 1, 100e18);
-        exchangeRate = bound(exchangeRate,     1, 100e18);
+        marketPrice  = bound(marketPrice,  1, 100e18);
+        exchangeRate = bound(exchangeRate, 1, 100e18);
 
         weeth.setExchangeRate(exchangeRate);
         weethETHFeed.setLatestAnswer(int256(marketPrice));
