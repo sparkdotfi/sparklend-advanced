@@ -47,8 +47,8 @@ contract WEETHRatioOracleTest is Test {
     /**********************************************************************************************/
 
     function test_constructor() public {
-        assertEq(address(oracle.weeth()),               address(weeth));
-        assertEq(address(oracle.weethEthFeed()),        address(weethEthFeed));
+        assertEq(address(oracle.weeth()),        address(weeth));
+        assertEq(address(oracle.weethEthFeed()), address(weethEthFeed));
     }
 
     function test_constructor_invalidFeedDecimals() public {
