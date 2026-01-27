@@ -19,16 +19,16 @@ contract WEETHRatioOracle {
     address public immutable weeth;
 
     /// @notice weETH/ETH price feed (18 decimals).
-    address public immutable weethEthFeed;
+    address public immutable weethETHFeed;
 
-    constructor(address weeth_, address weethEthFeed_) {
+    constructor(address weeth_, address weethETHFeed_) {
         require(
-            IPriceSource(weethEthFeed_).decimals() == 18,
+            IPriceSource(weethETHFeed_).decimals() == 18,
             "WEETHRatioOracle/invalid-feed-decimals"
         );
 
         weeth        = weeth_;
-        weethEthFeed = weethEthFeed_;
+        weethETHFeed = weethETHFeed_;
     }
 
     /**
@@ -36,12 +36,12 @@ contract WEETHRatioOracle {
      * @return ratio The peg ratio (1e18 = perfect peg, < 1e18 = depegged).
      */
     function latestAnswer() external view returns (int256 ratio) {
-        int256  weethEthPrice = IPriceSource(weethEthFeed).latestAnswer(); // weETH/ETH
+        int256  weethETHPrice = IPriceSource(weethETHFeed).latestAnswer(); // weETH/ETH
         uint256 weethRate     = IWEETHLike(weeth).getRate(); // weETH/eETH
 
         // eETH/ETH ratio = (weETH/ETH) * 1e18 / (weETH/eETH)
-        // Both weethEthPrice and weethRate are 18 decimals, result is 1e18 precision
-        return (weethEthPrice <= 0 || weethRate == 0) ? int256(0) : (weethEthPrice * 1e18) / int256(weethRate);
+        // Both weethETHPrice and weethRate are 18 decimals, result is 1e18 precision
+        return (weethETHPrice <= 0 || weethRate == 0) ? int256(0) : (weethETHPrice * 1e18) / int256(weethRate);
     }
 
     function decimals() external pure returns (uint8 decimals) {

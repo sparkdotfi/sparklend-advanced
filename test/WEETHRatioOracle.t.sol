@@ -29,13 +29,13 @@ contract WEETHRatioOracleTest is Test {
 
     WEETHRatioOracle oracle;
     WEETHMock        weeth;
-    PriceSourceMock  weethEthFeed;
+    PriceSourceMock  weethETHFeed;
 
     function setUp() public {
         weeth        = new WEETHMock(1.05e18);
-        weethEthFeed = new PriceSourceMock(1.05e18, 18);
+        weethETHFeed = new PriceSourceMock(1.05e18, 18);
 
-        oracle = new WEETHRatioOracle(address(weeth), address(weethEthFeed));
+        oracle = new WEETHRatioOracle(address(weeth), address(weethETHFeed));
     }
 
     /**********************************************************************************************/
@@ -44,14 +44,14 @@ contract WEETHRatioOracleTest is Test {
 
     function test_constructor() external {
         assertEq(address(oracle.weeth()),        address(weeth));
-        assertEq(address(oracle.weethEthFeed()), address(weethEthFeed));
+        assertEq(address(oracle.weethETHFeed()), address(weethETHFeed));
     }
 
     function test_constructor_invalidFeedDecimals() external {
-        weethEthFeed.setDecimals(8);
+        weethETHFeed.setDecimals(8);
 
         vm.expectRevert("WEETHRatioOracle/invalid-feed-decimals");
-        new WEETHRatioOracle(address(weeth), address(weethEthFeed));
+        new WEETHRatioOracle(address(weeth), address(weethETHFeed));
     }
 
     /**********************************************************************************************/
@@ -67,24 +67,24 @@ contract WEETHRatioOracleTest is Test {
     function test_latestAnswer_depeg() external {
         // weETH/ETH price = 1.0e18 (market), weETH rate = 1.05e18 (exchange rate)
         // eETH/ETH ratio = 1.0e18 * 1e18 / 1.05e18 = 952380952380952380 (depegged)
-        weethEthFeed.setLatestAnswer(1.0e18);
+        weethETHFeed.setLatestAnswer(1.0e18);
         assertEq(oracle.latestAnswer(), 0.952380952380952380e18);
     }
 
     function test_latestAnswer_premium() external {
         // weETH/ETH price = 1.1e18 (market), weETH rate = 1.05e18 (exchange rate)
         // eETH/ETH ratio = 1.1e18 * 1e18 / 1.05e18 = ~1.0476e18 (premium)
-        weethEthFeed.setLatestAnswer(1.1e18);
+        weethETHFeed.setLatestAnswer(1.1e18);
         assertEq(oracle.latestAnswer(), 1.047619047619047619e18);
     }
 
     function test_latestAnswer_zeroPrice() external {
-        weethEthFeed.setLatestAnswer(0);
+        weethETHFeed.setLatestAnswer(0);
         assertEq(oracle.latestAnswer(), 0);
     }
 
     function test_latestAnswer_negativePrice() external {
-        weethEthFeed.setLatestAnswer(-1);
+        weethETHFeed.setLatestAnswer(-1);
         assertEq(oracle.latestAnswer(), 0);
     }
 
@@ -106,18 +106,18 @@ contract WEETHRatioOracleTest is Test {
     /**********************************************************************************************/
 
     function testFuzz_latestAnswer_ratioCalculation(
-        uint256 weethEthPrice,
+        uint256 weethETHPrice,
         uint256 weethRate
     ) external {
         // Bound to realistic ranges to avoid overflow
-        weethEthPrice = bound(weethEthPrice, 1, 100e18);
+        weethETHPrice = bound(weethETHPrice, 1, 100e18);
         weethRate     = bound(weethRate,     1, 100e18);
 
         weeth.setExchangeRate(weethRate);
-        weethEthFeed.setLatestAnswer(int256(weethEthPrice));
+        weethETHFeed.setLatestAnswer(int256(weethETHPrice));
 
         int256 ratio    = oracle.latestAnswer();
-        int256 expected = int256((weethEthPrice * 1e18) / weethRate);
+        int256 expected = int256((weethETHPrice * 1e18) / weethRate);
 
         assertEq(ratio, expected);
     }
@@ -127,7 +127,7 @@ contract WEETHRatioOracleTest is Test {
         value = bound(value, 1, 100e18);
 
         weeth.setExchangeRate(value);
-        weethEthFeed.setLatestAnswer(int256(value));
+        weethETHFeed.setLatestAnswer(int256(value));
 
         assertEq(oracle.latestAnswer(), 1e18);
     }
@@ -136,15 +136,15 @@ contract WEETHRatioOracleTest is Test {
         // Any non-positive price should return 0
         price = bound(price, type(int256).min, 0);
 
-        weethEthFeed.setLatestAnswer(price);
+        weethETHFeed.setLatestAnswer(price);
 
         assertEq(oracle.latestAnswer(), 0);
     }
 
-    function testFuzz_latestAnswer_zeroOnZeroRate(uint256 weethEthPrice) external {
-        weethEthPrice = bound(weethEthPrice, 1, 100e18);
+    function testFuzz_latestAnswer_zeroOnZeroRate(uint256 weethETHPrice) external {
+        weethETHPrice = bound(weethETHPrice, 1, 100e18);
 
-        weethEthFeed.setLatestAnswer(int256(weethEthPrice));
+        weethETHFeed.setLatestAnswer(int256(weethETHPrice));
         weeth.setExchangeRate(0);
 
         assertEq(oracle.latestAnswer(), 0);
