@@ -24,6 +24,8 @@ Please note all these oracles are designed for consumption by `AaveOracle` which
 
 [SPETHExchangeRateOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/SPETHExchangeRateOracle.sol): Provides spETH/USD by multiplying the spETH (ERC-4626) exchange rate by ETH/USD. Used for: spETH market
 
+[WEETHRatioOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/WEETHRatioOracle.sol): Provides eETH/ETH by dividing the weETH/ETH price by the weETH exchange rate. Used for: KillSwitch monitoring
+
 [MorphoUpgradableOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/MorphoUpgradableOracle.sol): Allows Spark Governance to change an oracle for Morpho Blue markets. Planned to be used in Morpho Blue.
 
 ### Custom Interest Rate Strategies
