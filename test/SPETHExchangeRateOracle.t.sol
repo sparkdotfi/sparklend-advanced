@@ -43,7 +43,7 @@ contract SPETHExchangeRateOracleTest is Test {
         assertEq(oracle.decimals(),           8);
     }
 
-    function test_invalid_decimals() public {
+    function test_constructor_invalidDecimals() public {
         ethSource.setLatestAnswer(2000e18);
         ethSource.setDecimals(18);
         vm.expectRevert("SPETHExchangeRateOracle/invalid-decimals");
