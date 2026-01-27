@@ -33,7 +33,7 @@ contract SPETHExchangeRateOracle {
         int256 ethUsd       = IPriceSource(ethSource).latestAnswer();
         int256 exchangeRate = int256(IERC4626Like(speth).convertToAssets(1e18));
 
-        return (ethUsd <= 0 || exchangeRate <= 0) ? 0 : (exchangeRate * ethUsd) / 1e18;
+        return (ethUsd <= 0 || exchangeRate <= 0) ? int256(0) : (exchangeRate * ethUsd) / 1e18;
     }
 
     function decimals() external pure returns (uint8) {
