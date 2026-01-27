@@ -5,7 +5,6 @@ contract AggregatorV3Mock {
 
     uint8   public decimals;
     int256  public answer;
-    uint256 public startedAt;
     uint256 public updatedAt;
 
     constructor(uint8 _decimals) {
@@ -22,11 +21,9 @@ contract AggregatorV3Mock {
 
     function setRoundData(
         int256  _answer,
-        uint256 _startedAt,
         uint256 _updatedAt
     ) external {
         answer    = _answer;
-        startedAt = _startedAt;
         updatedAt = _updatedAt;
     }
 
@@ -37,7 +34,7 @@ contract AggregatorV3Mock {
         uint256,
         uint80
     ) {
-        return (0, answer, startedAt, updatedAt, 0);
+        return (0, answer, 0, updatedAt, 0);
     }
 
 }
