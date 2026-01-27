@@ -34,8 +34,7 @@ contract WEETHRatioOracleTest is Test {
     function setUp() public {
         weeth        = new WEETHMock(1.05e18);
         weethETHFeed = new PriceSourceMock(1.05e18, 18);
-
-        oracle = new WEETHRatioOracle(address(weeth), address(weethETHFeed));
+        oracle       = new WEETHRatioOracle(address(weeth), address(weethETHFeed));
     }
 
     /**********************************************************************************************/
