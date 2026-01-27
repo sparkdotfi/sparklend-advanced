@@ -46,7 +46,6 @@ contract CbBTCRatioOracle {
         btcUsdFeed                 = AggregatorV3Interface(_btcUsdFeed);
         stalenessThresholdCbbtcUsd = _stalenessThresholdCbbtcUsd;
         stalenessThresholdBtcUsd   = _stalenessThresholdBtcUsd;
-
     }
 
     /**

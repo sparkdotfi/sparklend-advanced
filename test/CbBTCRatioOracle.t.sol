@@ -303,7 +303,6 @@ contract CbBTCRatioOracleTest is Test {
         btcUsdFeed.setAnswer(price);
 
         assertEq(oracle.latestAnswer(), 0);
-        assertEq(oracle.latestAnswer(), 0);
     }
 
     function testFuzz_latestAnswer_cbbtcStalenessCheck(uint256 timeDelta) public {
