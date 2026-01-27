@@ -21,12 +21,12 @@ contract SPETHExchangeRateOracle {
     /// @notice The price source for ETH / USD.
     address public immutable ethSource;
 
-    constructor(address _speth, address _ethSource) {
+    constructor(address speth_, address ethSource_) {
         // 8 decimals required as AaveOracle assumes this
-        require(IPriceSource(_ethSource).decimals() == 8, "SPETHExchangeRateOracle/invalid-decimals");
+        require(IPriceSource(ethSource_).decimals() == 8, "SPETHExchangeRateOracle/invalid-decimals");
 
-        speth     = _speth;
-        ethSource = _ethSource;
+        speth     = speth_;
+        ethSource = ethSource_;
     }
 
     function latestAnswer() external view returns (int256) {
