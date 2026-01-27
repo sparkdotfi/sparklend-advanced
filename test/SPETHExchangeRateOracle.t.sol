@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
+import { Test } from "@forge-std/Test.sol";
 
 import { PriceSourceMock } from "./mocks/PriceSourceMock.sol";
 
@@ -9,28 +9,27 @@ import { SPETHExchangeRateOracle } from "../src/SPETHExchangeRateOracle.sol";
 
 contract SPETHMock {
 
-    uint256 exchangeRate;
+    uint256 public exchangeRate;
 
-    constructor(uint256 _exchangeRate) {
-        exchangeRate = _exchangeRate;
+    constructor(uint256 exchangeRate_) {
+        exchangeRate = exchangeRate_;
     }
 
     function convertToAssets(uint256 shares) external view returns (uint256) {
-        return exchangeRate * shares / 1e18;
+        return (exchangeRate * shares) / 1e18;
     }
 
-    function setExchangeRate(uint256 _exchangeRate) external {
-        exchangeRate = _exchangeRate;
+    function setExchangeRate(uint256 exchangeRate_) external {
+        exchangeRate = exchangeRate_;
     }
 
 }
 
 contract SPETHExchangeRateOracleTest is Test {
 
-    SPETHMock       speth;
-    PriceSourceMock ethSource;
-
+    PriceSourceMock         ethSource;
     SPETHExchangeRateOracle oracle;
+    SPETHMock               speth;
 
     function setUp() public {
         speth     = new SPETHMock(1.0036e18);
@@ -87,6 +86,7 @@ contract SPETHExchangeRateOracleTest is Test {
     function testFuzz_latestAnswer(uint256 exchangeRate, uint256 ethPrice) public {
         // Bound exchange rate between 1.0 and 2.0 (reasonable LST range)
         exchangeRate = bound(exchangeRate, 1e18, 2e18);
+
         // Bound ETH price between $100 and $100,000
         ethPrice = bound(ethPrice, 100e8, 100_000e8);
 
@@ -94,7 +94,7 @@ contract SPETHExchangeRateOracleTest is Test {
         ethSource.setLatestAnswer(int256(ethPrice));
 
         int256 result   = oracle.latestAnswer();
-        int256 expected = int256(exchangeRate) * int256(ethPrice) / 1e18;
+        int256 expected = (int256(exchangeRate) * int256(ethPrice)) / 1e18;
 
         assertEq(result, expected);
     }

@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import { IPriceSource } from "./interfaces/IPriceSource.sol";
 
-interface IERC4626 {
-    function convertToAssets(uint256 shares) external view returns (uint256);
+interface IERC4626Like {
+    function convertToAssets(uint256 shares) external view returns (uint256 assets);
 }
 
 /**
@@ -16,28 +16,24 @@ interface IERC4626 {
 contract SPETHExchangeRateOracle {
 
     /// @notice spETH vault contract (ERC-4626).
-    IERC4626 public immutable speth;
+    address public immutable speth;
 
     /// @notice The price source for ETH / USD.
-    IPriceSource public immutable ethSource;
+    address public immutable ethSource;
 
     constructor(address _speth, address _ethSource) {
         // 8 decimals required as AaveOracle assumes this
         require(IPriceSource(_ethSource).decimals() == 8, "SPETHExchangeRateOracle/invalid-decimals");
 
-        speth     = IERC4626(_speth);
-        ethSource = IPriceSource(_ethSource);
+        speth     = _speth;
+        ethSource = _ethSource;
     }
 
     function latestAnswer() external view returns (int256) {
-        int256 ethUsd       = ethSource.latestAnswer();
-        int256 exchangeRate = int256(speth.convertToAssets(1e18));
+        int256 ethUsd       = IPriceSource(ethSource).latestAnswer();
+        int256 exchangeRate = int256(IERC4626Like(speth).convertToAssets(1e18));
 
-        if (ethUsd <= 0 || exchangeRate <= 0) {
-            return 0;
-        }
-
-        return exchangeRate * ethUsd / 1e18;
+        return (ethUsd <= 0 || exchangeRate <= 0) ? 0 : (exchangeRate * ethUsd) / 1e18;
     }
 
     function decimals() external pure returns (uint8) {
