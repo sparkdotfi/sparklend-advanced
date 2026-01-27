@@ -26,6 +26,8 @@ Please note all these oracles are designed for consumption by `AaveOracle` which
 
 [WEETHRatioOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/WEETHRatioOracle.sol): Provides eETH/ETH by dividing the weETH/ETH price by the weETH exchange rate. Used for: KillSwitch monitoring
 
+[CBBTCRatioOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/CBBTCRatioOracle.sol): Provides cbBTC/BTC by dividing the cbBTC/USD price by the BTC/USD price. Used for: KillSwitch monitoring
+
 [MorphoUpgradableOracle](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/MorphoUpgradableOracle.sol): Allows Spark Governance to change an oracle for Morpho Blue markets. Planned to be used in Morpho Blue.
 
 ### Custom Interest Rate Strategies
