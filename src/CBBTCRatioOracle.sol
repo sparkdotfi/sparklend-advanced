@@ -42,7 +42,9 @@ contract CBBTCRatioOracle {
 
         // cbBTC/BTC ratio = (cbBTC/USD) * 1e18 / (BTC/USD)
         // Both prices are 8 decimals, they cancel out, result is 1e18
-        return (cbbtcUSDPrice <= 0 || btcUSDPrice <= 0) ? int256(0) : (cbbtcUSDPrice * 1e18) / btcUSDPrice;
+        return (cbbtcUSDPrice <= 0 || btcUSDPrice <= 0)
+            ? int256(0)
+            : (cbbtcUSDPrice * 1e18) / btcUSDPrice;
     }
 
     function decimals() external pure returns (uint8) {

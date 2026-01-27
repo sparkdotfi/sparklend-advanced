@@ -23,7 +23,10 @@ contract SPETHExchangeRateOracle {
 
     constructor(address speth_, address ethSource_) {
         // 8 decimals required as AaveOracle assumes this
-        require(IPriceSource(ethSource_).decimals() == 8, "SPETHExchangeRateOracle/invalid-decimals");
+        require(
+            IPriceSource(ethSource_).decimals() == 8,
+            "SPETHExchangeRateOracle/invalid-decimals"
+        );
 
         speth     = speth_;
         ethSource = ethSource_;

@@ -41,7 +41,9 @@ contract WEETHRatioOracle {
 
         // eETH/ETH ratio = (weETH/ETH) * 1e18 / (weETH/eETH)
         // Both weethETHPrice and weethRate are 18 decimals, result is 1e18 precision
-        return (weethETHPrice <= 0 || weethRate == 0) ? int256(0) : (weethETHPrice * 1e18) / int256(weethRate);
+        return (weethETHPrice <= 0 || weethRate == 0)
+            ? int256(0)
+            : (weethETHPrice * 1e18) / int256(weethRate);
     }
 
     function decimals() external pure returns (uint8) {

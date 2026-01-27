@@ -41,7 +41,9 @@ contract RETHRatioOracle {
 
         // rETH/ETH ratio = (rETH/ETH) * 1e18 / (rETH/ETH)
         // Both rethEthPrice and exchangeRate are 18 decimals, result is 1e18
-        return (rethEthPrice <= 0 || exchangeRate == 0) ? int256(0) : (rethEthPrice * 1e18) / int256(exchangeRate);
+        return (rethEthPrice <= 0 || exchangeRate == 0)
+            ? int256(0)
+            : (rethEthPrice * 1e18) / int256(exchangeRate);
     }
 
     function decimals() external pure returns (uint8) {
