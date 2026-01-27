@@ -44,4 +44,8 @@ contract WEETHRatioOracle {
         return (weethEthPrice <= 0 || weethRate == 0) ? int256(0) : (weethEthPrice * 1e18) / int256(weethRate);
     }
 
+    function decimals() external pure returns (uint8 decimals) {
+        return 18;
+    }
+
 }
