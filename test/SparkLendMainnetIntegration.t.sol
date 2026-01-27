@@ -23,6 +23,7 @@ import { WSTETHExchangeRateOracle }           from "src/WSTETHExchangeRateOracle
 import { WEETHExchangeRateOracle }            from "src/WEETHExchangeRateOracle.sol";
 import { RSETHExchangeRateOracle }            from "src/RSETHExchangeRateOracle.sol";
 import { EZETHExchangeRateOracle }            from "src/EZETHExchangeRateOracle.sol";
+import { SPETHExchangeRateOracle }            from "src/SPETHExchangeRateOracle.sol";
 
 interface ITollLike {
     function kiss(address) external;
@@ -50,6 +51,7 @@ contract SparkLendMainnetIntegrationTest is Test {
     address RSETH  = 0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7;
     address EZETH  = 0xbf5495Efe5DB9ce00f80364C8B423567e58d2110;
     address SUSDS  = 0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD;
+    address SPETH  = 0xfE6eb3b609a7C8352A241f7F3A21CEA4e9209B8f;
 
     address ETH_IRM       = 0xD7A8461e6aF708a086D8285f8fD900309336347c;
     address USDC_ORACLE   = 0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6;
@@ -72,7 +74,7 @@ contract SparkLendMainnetIntegrationTest is Test {
         vm.createSelectFork(getChain("mainnet").rpcUrl, 19895484);  // May 18, 2024
     }
 
-    function test_dai_market_oracle() public {
+    function test_dai_sparklendOracle() public {
         // Set fork state to before this was introduced
         vm.createSelectFork(getChain("mainnet").rpcUrl, 18784436);  // Dec 14, 2023
 
@@ -95,9 +97,9 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertEq(aaveOracle.getAssetPrice(DAI), 1e8);
     }
 
-    function test_dai_market_irm() public {
+    function test_dai_sparklendIRM() public {
         vm.createSelectFork(getChain("mainnet").rpcUrl, 20965077);  // Oct 14, 2024
-        
+
         RateTargetBaseInterestRateStrategy strategy
             = new RateTargetBaseInterestRateStrategy({
                 provider:                      poolAddressesProvider,
@@ -147,7 +149,7 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertApproxEqRel(_getBorrowRate(DAI), currentBorrowRate + 0.01e27, 0.001e18);
     }
 
-    function test_eth_market_irm() public {
+    function test_eth_sparklendIRM() public {
         CappedFallbackRateSource rateSource = new CappedFallbackRateSource({
             _source:      LST_RATE_SOURCE,
             _lowerBound:  0.01e18,
@@ -200,7 +202,7 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertEq(_getBorrowRate(ETH), 0.016985713431350567055736333e27);
     }
 
-    function test_usdc_usdt_market_oracles() public {
+    function test_usdc_usdt_sparklendOracles() public {
         // Set fork state to before this was introduced
         vm.createSelectFork(getChain("mainnet").rpcUrl, 18784436);  // Dec 14, 2023
 
@@ -228,9 +230,9 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertEq(aaveOracle.getAssetPrice(USDT), 0.99961441e8);
     }
 
-    function test_usdc_usdt_market_irms() public {
+    function test_usdc_usdt_sparklendIRMs() public {
         vm.createSelectFork(getChain("mainnet").rpcUrl, 20965077);  // Oct 14, 2024
-        
+
         RateTargetKinkInterestRateStrategy strategy
             = new RateTargetKinkInterestRateStrategy({
                 provider:                 poolAddressesProvider,
@@ -273,10 +275,10 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertEq(_getBorrowRate(USDT), newRateUSDT, "after1: USDT mismatch");
     }
 
-    function test_reth_market_oracle() public {
+    function test_reth_sparklendOracle() public {
         // Set fork state to before this was introduced
         vm.createSelectFork(getChain("mainnet").rpcUrl, 19015252);  // Jan 15, 2024
-        
+
         RETHExchangeRateOracle oracle = new RETHExchangeRateOracle(RETH, ETHUSD_ORACLE);
 
         // Nothing is special about this number, it just happens to be the price at this block
@@ -299,10 +301,10 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertEq(aaveOracle.getSourceOfAsset(RETH), address(oracle));
     }
 
-    function test_wsteth_market_oracle() public {
+    function test_wsteth_sparklendOracle() public {
         // Set fork state to before this was introduced
         vm.createSelectFork(getChain("mainnet").rpcUrl, 19015252);  // Jan 15, 2024
-        
+
         WSTETHExchangeRateOracle oracle = new WSTETHExchangeRateOracle(STETH, ETHUSD_ORACLE);
 
         // Nothing is special about this number, it just happens to be the price at this block
@@ -325,11 +327,12 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertEq(aaveOracle.getSourceOfAsset(WSTETH), address(oracle));
     }
 
-    function test_weeth_market_oracle() public {
+    function test_weeth_sparklendOracle() public {
         WEETHExchangeRateOracle oracle = new WEETHExchangeRateOracle(WEETH, ETHUSD_ORACLE);
 
         vm.expectRevert();  // Not setup yet
-        assertEq(aaveOracle.getAssetPrice(WEETH),    0);
+        aaveOracle.getAssetPrice(WEETH);
+
         assertEq(aaveOracle.getSourceOfAsset(WEETH), address(0));
 
         address[] memory assets = new address[](1);
@@ -350,11 +353,12 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertEq(aaveOracle.getSourceOfAsset(WEETH), address(oracle));
     }
 
-    function test_rseth_market_oracle() public {
+    function test_rseth_sparklendOracle() public {
         RSETHExchangeRateOracle oracle = new RSETHExchangeRateOracle(RSETH_ORACLE, ETHUSD_ORACLE);
 
         vm.expectRevert();  // Not setup yet
-        assertEq(aaveOracle.getAssetPrice(RSETH),    0);
+        aaveOracle.getAssetPrice(RSETH);
+
         assertEq(aaveOracle.getSourceOfAsset(RSETH), address(0));
 
         address[] memory assets = new address[](1);
@@ -375,11 +379,12 @@ contract SparkLendMainnetIntegrationTest is Test {
         assertEq(aaveOracle.getSourceOfAsset(RSETH), address(oracle));
     }
 
-    function test_ezeth_market_oracle() public {
+    function test_ezeth_sparklendOracle() public {
         EZETHExchangeRateOracle oracle = new EZETHExchangeRateOracle(EZETH_ORACLE, ETHUSD_ORACLE);
 
         vm.expectRevert();  // Not setup yet
-        assertEq(aaveOracle.getAssetPrice(EZETH),    0);
+        aaveOracle.getAssetPrice(EZETH);
+
         assertEq(aaveOracle.getSourceOfAsset(EZETH), address(0));
 
         address[] memory assets = new address[](1);
@@ -398,6 +403,35 @@ contract SparkLendMainnetIntegrationTest is Test {
 
         assertEq(aaveOracle.getAssetPrice(EZETH),    price);
         assertEq(aaveOracle.getSourceOfAsset(EZETH), address(oracle));
+    }
+
+    function test_speth_sparklendOracle() public {
+        vm.createSelectFork(getChain("mainnet").rpcUrl, 24318543);  // Jan 26, 2026
+
+        SPETHExchangeRateOracle oracle = new SPETHExchangeRateOracle(SPETH, ETHUSD_ORACLE);
+
+        vm.expectRevert(); // SPETH not yet added on SparkLend
+        aaveOracle.getAssetPrice(SPETH);
+
+        assertEq(aaveOracle.getSourceOfAsset(SPETH), address(0));
+
+        address[] memory assets = new address[](1);
+        assets[0] = SPETH;
+
+        address[] memory sources = new address[](1);
+        sources[0] = address(oracle);
+
+        vm.prank(ADMIN);
+        aaveOracle.setAssetSources(
+            assets,
+            sources
+        );
+
+        // spETH Price (USD) at this block
+        uint256 price = 2904.01656577e8;
+
+        assertEq(aaveOracle.getAssetPrice(SPETH),    price);
+        assertEq(aaveOracle.getSourceOfAsset(SPETH), address(oracle));
     }
 
     /**********************************************************************************************/
