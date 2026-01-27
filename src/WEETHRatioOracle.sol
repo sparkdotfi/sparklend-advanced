@@ -36,14 +36,14 @@ contract WEETHRatioOracle {
      * @return ratio The peg ratio (1e18 = perfect peg, < 1e18 = depegged).
      */
     function latestAnswer() external view returns (int256 ratio) {
-        int256  weethETHPrice = IPriceSource(weethETHFeed).latestAnswer(); // weETH/ETH
-        uint256 weethRate     = IWEETHLike(weeth).getRate(); // weETH/eETH
+        int256  marketPrice  = IPriceSource(weethETHFeed).latestAnswer(); // weETH/ETH
+        uint256 exchangeRate = IWEETHLike(weeth).getRate(); // weETH/eETH
 
         // eETH/ETH ratio = (weETH/ETH) * 1e18 / (weETH/eETH)
-        // Both weethETHPrice and weethRate are 18 decimals, result is 1e18 precision
-        return (weethETHPrice <= 0 || weethRate == 0)
+        // Both marketPrice and exchangeRate are 18 decimals, result is 1e18 precision.
+        return (marketPrice <= 0 || exchangeRate == 0)
             ? int256(0)
-            : (weethETHPrice * 1e18) / int256(weethRate);
+            : (marketPrice * 1e18) / int256(exchangeRate);
     }
 
     function decimals() external pure returns (uint8) {
