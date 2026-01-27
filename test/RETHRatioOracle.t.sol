@@ -98,45 +98,45 @@ contract RETHRatioOracleTest is Test {
     /**********************************************************************************************/
 
     function testFuzz_latestAnswer_ratioCalculation(
-        uint256 rethETHPrice,
-        uint256 rethRate
+        uint256 marketPrice,
+        uint256 exchangeRate
     ) external {
         // Bound to realistic ranges to avoid overflow
-        rethETHPrice = bound(rethETHPrice, 1, 100e18);
-        rethRate     = bound(rethRate,     1, 100e18);
+        marketPrice  = bound(marketPrice, 1, 100e18);
+        exchangeRate = bound(exchangeRate,     1, 100e18);
 
-        reth.setExchangeRate(rethRate);
-        rethETHFeed.setLatestAnswer(int256(rethETHPrice));
+        reth.setExchangeRate(exchangeRate);
+        rethETHFeed.setLatestAnswer(int256(marketPrice));
 
         int256 ratio    = oracle.latestAnswer();
-        int256 expected = int256((rethETHPrice * 1e18) / rethRate);
+        int256 expected = int256((marketPrice * 1e18) / exchangeRate);
 
         assertEq(ratio, expected);
     }
 
-    function testFuzz_latestAnswer_perfectPeg(uint256 value) external {
-        // When price equals rate, ratio should be 1e18
-        value = bound(value, 1, 100e18);
+    function testFuzz_latestAnswer_perfectPeg(uint256 exchangeRate) external {
+        // When market price equals exchange rate, ratio should be 1e18.
+        exchangeRate = bound(exchangeRate, 1, 100e18);
 
-        reth.setExchangeRate(value);
-        rethETHFeed.setLatestAnswer(int256(value));
+        reth.setExchangeRate(exchangeRate);
+        rethETHFeed.setLatestAnswer(int256(exchangeRate));
 
         assertEq(oracle.latestAnswer(), 1e18);
     }
 
-    function testFuzz_latestAnswer_zeroOnInvalidPrice(int256 price) external {
-        // Any non-positive price should return 0
-        price = bound(price, type(int256).min, 0);
+    function testFuzz_latestAnswer_zeroOnInvalidPrice(int256 marketPrice) external {
+        // Any non-positive market price should return 0
+        marketPrice = bound(marketPrice, type(int256).min, 0);
 
-        rethETHFeed.setLatestAnswer(price);
+        rethETHFeed.setLatestAnswer(marketPrice);
 
         assertEq(oracle.latestAnswer(), 0);
     }
 
-    function testFuzz_latestAnswer_zeroOnZeroRate(uint256 rethETHPrice) external {
-        rethETHPrice = bound(rethETHPrice, 1, 100e18);
+    function testFuzz_latestAnswer_zeroOnZeroRate(uint256 marketPrice) external {
+        marketPrice = bound(marketPrice, 1, 100e18);
 
-        rethETHFeed.setLatestAnswer(int256(rethETHPrice));
+        rethETHFeed.setLatestAnswer(int256(marketPrice));
         reth.setExchangeRate(0);
 
         assertEq(oracle.latestAnswer(), 0);

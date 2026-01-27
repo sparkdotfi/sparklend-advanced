@@ -98,45 +98,45 @@ contract WEETHRatioOracleTest is Test {
     /**********************************************************************************************/
 
     function testFuzz_latestAnswer_ratioCalculation(
-        uint256 weethETHPrice,
-        uint256 weethRate
+        uint256 marketPrice,
+        uint256 exchangeRate
     ) external {
         // Bound to realistic ranges to avoid overflow
-        weethETHPrice = bound(weethETHPrice, 1, 100e18);
-        weethRate     = bound(weethRate,     1, 100e18);
+        marketPrice  = bound(marketPrice, 1, 100e18);
+        exchangeRate = bound(exchangeRate,     1, 100e18);
 
-        weeth.setExchangeRate(weethRate);
-        weethETHFeed.setLatestAnswer(int256(weethETHPrice));
+        weeth.setExchangeRate(exchangeRate);
+        weethETHFeed.setLatestAnswer(int256(marketPrice));
 
         int256 ratio    = oracle.latestAnswer();
-        int256 expected = int256((weethETHPrice * 1e18) / weethRate);
+        int256 expected = int256((marketPrice * 1e18) / exchangeRate);
 
         assertEq(ratio, expected);
     }
 
-    function testFuzz_latestAnswer_perfectPeg(uint256 value) external {
-        // When price equals rate, ratio should be 1e18
-        value = bound(value, 1, 100e18);
+    function testFuzz_latestAnswer_perfectPeg(uint256 exchangeRate) external {
+        // When market price equals exchange rate, ratio should be 1e18.
+        exchangeRate = bound(exchangeRate, 1, 100e18);
 
-        weeth.setExchangeRate(value);
-        weethETHFeed.setLatestAnswer(int256(value));
+        weeth.setExchangeRate(exchangeRate);
+        weethETHFeed.setLatestAnswer(int256(exchangeRate));
 
         assertEq(oracle.latestAnswer(), 1e18);
     }
 
-    function testFuzz_latestAnswer_zeroOnInvalidPrice(int256 price) external {
-        // Any non-positive price should return 0
-        price = bound(price, type(int256).min, 0);
+    function testFuzz_latestAnswer_zeroOnInvalidPrice(int256 marketPrice) external {
+        // Any non-positive market price should return 0.
+        marketPrice = bound(marketPrice, type(int256).min, 0);
 
-        weethETHFeed.setLatestAnswer(price);
+        weethETHFeed.setLatestAnswer(marketPrice);
 
         assertEq(oracle.latestAnswer(), 0);
     }
 
-    function testFuzz_latestAnswer_zeroOnZeroRate(uint256 weethETHPrice) external {
-        weethETHPrice = bound(weethETHPrice, 1, 100e18);
+    function testFuzz_latestAnswer_zeroOnZeroRate(uint256 marketPrice) external {
+        marketPrice = bound(marketPrice, 1, 100e18);
 
-        weethETHFeed.setLatestAnswer(int256(weethETHPrice));
+        weethETHFeed.setLatestAnswer(int256(marketPrice));
         weeth.setExchangeRate(0);
 
         assertEq(oracle.latestAnswer(), 0);
