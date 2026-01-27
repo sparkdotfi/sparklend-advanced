@@ -15,23 +15,20 @@ interface IWEETHLike {
  */
 contract WEETHRatioOracle {
 
-    /// @notice weETH/ETH price feed (18 decimals).
-    address public immutable weethEthFeed;
-
     /// @notice weETH token contract.
     address public immutable weeth;
 
-    constructor(
-        address weeth_,
-        address weethEthFeed_
-    ) {
+    /// @notice weETH/ETH price feed (18 decimals).
+    address public immutable weethEthFeed;
+
+    constructor(address weeth_, address weethEthFeed_) {
         require(
             IPriceSource(weethEthFeed_).decimals() == 18,
             "WEETHRatioOracle/invalid-feed-decimals"
         );
 
-        weethEthFeed = weethEthFeed_;
         weeth        = weeth_;
+        weethEthFeed = weethEthFeed_;
     }
 
     /**
