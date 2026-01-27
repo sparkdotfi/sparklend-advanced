@@ -21,10 +21,7 @@ contract RETHRatioOracle {
     /// @notice rETH/ETH price feed (18 decimals).
     address public immutable rethETHFeed;
 
-    constructor(
-        address reth_,
-        address rethETHFeed_
-    ) {
+    constructor(address reth_, address rethETHFeed_) {
         require(
             IPriceSource(rethETHFeed_).decimals() == 18,
             "RETHRatioOracle/invalid-feed-decimals"
