@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import { IPriceSource } from "./interfaces/IPriceSource.sol";
 
-interface IWeETH {
-    function getRate() external view returns (uint256);
+interface IWEETHLike {
+    function getRate() external view returns (uint256 rate);
 }
 
 /**
@@ -16,22 +16,22 @@ interface IWeETH {
 contract WEETHRatioOracle {
 
     /// @notice weETH/ETH price feed (18 decimals).
-    IPriceSource public immutable weethEthFeed;
+    address public immutable weethEthFeed;
 
     /// @notice weETH token contract.
-    IWeETH public immutable weeth;
+    address public immutable weeth;
 
     constructor(
-        address _weeth,
-        address _weethEthFeed
+        address weeth_,
+        address weethEthFeed_
     ) {
         require(
-            IPriceSource(_weethEthFeed).decimals() == 18,
+            IPriceSource(weethEthFeed_).decimals() == 18,
             "WEETHRatioOracle/invalid-feed-decimals"
         );
 
-        weethEthFeed = IPriceSource(_weethEthFeed);
-        weeth        = IWeETH(_weeth);
+        weethEthFeed = weethEthFeed_;
+        weeth        = weeth_;
     }
 
     /**
@@ -40,13 +40,11 @@ contract WEETHRatioOracle {
      */
     function latestAnswer() external view returns (int256 ratio) {
         int256  weethEthPrice = IPriceSource(weethEthFeed).latestAnswer(); // weETH/ETH
-        uint256 weethRate     = weeth.getRate(); // weETH/eETH
-
-        if (weethEthPrice <= 0 || weethRate == 0) return 0;
+        uint256 weethRate     = IWEETHLike(weeth).getRate(); // weETH/eETH
 
         // eETH/ETH ratio = (weETH/ETH) * 1e18 / (weETH/eETH)
         // Both weethEthPrice and weethRate are 18 decimals, result is 1e18 precision
-        ratio = (weethEthPrice * 1e18) / int256(weethRate);
+        return (weethEthPrice <= 0 || weethRate == 0) ? int256(0) : (weethEthPrice * 1e18) / int256(weethRate);
     }
 
 }

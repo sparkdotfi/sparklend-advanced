@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
 import { PriceSourceMock } from "./mocks/PriceSourceMock.sol";
 
@@ -9,28 +9,27 @@ import { WEETHRatioOracle } from "../src/WEETHRatioOracle.sol";
 
 contract WEETHMock {
 
-    uint256 exchangeRate;
+    uint256 public exchangeRate;
 
-    constructor(uint256 _exchangeRate) {
-        exchangeRate = _exchangeRate;
+    constructor(uint256 exchangeRate_) {
+        exchangeRate = exchangeRate_;
     }
 
-    function getRate() external view returns (uint256) {
+    function getRate() external view returns (uint256 rate) {
         return exchangeRate;
     }
 
-    function setExchangeRate(uint256 _exchangeRate) external {
-        exchangeRate = _exchangeRate;
+    function setExchangeRate(uint256 exchangeRate_) external {
+        exchangeRate = exchangeRate_;
     }
 
 }
 
 contract WEETHRatioOracleTest is Test {
 
+    WEETHRatioOracle oracle;
     WEETHMock        weeth;
     PriceSourceMock  weethEthFeed;
-
-    WEETHRatioOracle oracle;
 
     function setUp() public {
         weeth        = new WEETHMock(1.05e18);
@@ -134,6 +133,7 @@ contract WEETHRatioOracleTest is Test {
     function testFuzz_latestAnswer_zeroOnInvalidPrice(int256 price) public {
         // Any non-positive price should return 0
         price = bound(price, type(int256).min, 0);
+
         weethEthFeed.setLatestAnswer(price);
 
         assertEq(oracle.latestAnswer(), 0);
@@ -141,6 +141,7 @@ contract WEETHRatioOracleTest is Test {
 
     function testFuzz_latestAnswer_zeroOnZeroRate(uint256 weethEthPrice) public {
         weethEthPrice = bound(weethEthPrice, 1, 100e18);
+
         weethEthFeed.setLatestAnswer(int256(weethEthPrice));
         weeth.setExchangeRate(0);
 
