@@ -45,7 +45,7 @@ contract WEETHRatioOracle {
         if (weethEthPrice <= 0 || weethRate == 0) return 0;
 
         // eETH/ETH ratio = (weETH/ETH) * 1e18 / (weETH/eETH)
-        // Both weethEthPrice and weethRate are 18 decimals, result is 1e18
+        // Both weethEthPrice and weethRate are 18 decimals, result is 1e18 precision
         ratio = (weethEthPrice * 1e18) / int256(weethRate);
     }
 
