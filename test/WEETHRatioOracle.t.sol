@@ -33,27 +33,36 @@ contract WEETHRatioOracleTest is Test {
     WEETHRatioOracle oracle;
 
     uint256 constant STALENESS_THRESHOLD = 1 days;
-    uint256 constant GRACE_PERIOD        = 1 hours;
 
     function setUp() public {
         weeth        = new WEETHMock(1.05e18);
         weethEthFeed = new AggregatorV3Mock(18);
 
         // Set valid Chainlink data: weETH/ETH = 1.05e18
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp
-        });
+        setWeethPrice(1.05e18);
 
-        // Deploy without sequencer feed (L1 mode)
         oracle = new WEETHRatioOracle(
             address(weeth),
             address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(0),
-            0
+            STALENESS_THRESHOLD
         );
+    }
+
+    /**********************************************************************************************/
+    /*** Test Helpers                                                                           ***/
+    /**********************************************************************************************/
+
+    /// @dev Sets weETH price feed with custom updatedAt timestamp
+    function setWeethPrice(int256 price, uint256 updatedAt) internal {
+        weethEthFeed.setRoundData({
+            _answer    : price,
+            _updatedAt : updatedAt
+        });
+    }
+
+    /// @dev Sets weETH price feed with current block.timestamp
+    function setWeethPrice(int256 price) internal {
+        setWeethPrice(price, block.timestamp);
     }
 
     /**********************************************************************************************/
@@ -64,28 +73,6 @@ contract WEETHRatioOracleTest is Test {
         assertEq(address(oracle.weeth()),               address(weeth));
         assertEq(address(oracle.weethEthFeed()),        address(weethEthFeed));
         assertEq(oracle.stalenessThreshold(),           STALENESS_THRESHOLD);
-        assertEq(address(oracle.sequencerUptimeFeed()), address(0));
-        assertEq(oracle.gracePeriod(),                  0);
-    }
-
-    function test_constructor_withSequencerFeed() public {
-        AggregatorV3Mock sequencerFeed = new AggregatorV3Mock(0);
-        sequencerFeed.setRoundData({
-            _answer    : 0,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp
-        });
-
-        WEETHRatioOracle l2Oracle = new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(sequencerFeed),
-            GRACE_PERIOD
-        );
-
-        assertEq(address(l2Oracle.sequencerUptimeFeed()), address(sequencerFeed));
-        assertEq(l2Oracle.gracePeriod(),                  GRACE_PERIOD);
     }
 
     function test_constructor_invalidFeedDecimals() public {
@@ -95,9 +82,7 @@ contract WEETHRatioOracleTest is Test {
         new WEETHRatioOracle(
             address(weeth),
             address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(0),
-            0
+            STALENESS_THRESHOLD
         );
     }
 
@@ -106,37 +91,6 @@ contract WEETHRatioOracleTest is Test {
         new WEETHRatioOracle(
             address(weeth),
             address(weethEthFeed),
-            0,
-            address(0),
-            0
-        );
-    }
-
-    function test_constructor_invalidSequencerConfig_gracePeriodWithoutFeed() public {
-        vm.expectRevert("WEETHRatioOracle/invalid-sequencer-config");
-        new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(0),
-            GRACE_PERIOD
-        );
-    }
-
-    function test_constructor_invalidSequencerConfig_feedWithoutGracePeriod() public {
-        AggregatorV3Mock sequencerFeed = new AggregatorV3Mock(0);
-        sequencerFeed.setRoundData({
-            _answer    : 0,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp
-        });
-
-        vm.expectRevert("WEETHRatioOracle/invalid-sequencer-config");
-        new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(sequencerFeed),
             0
         );
     }
@@ -185,181 +139,23 @@ contract WEETHRatioOracleTest is Test {
     /**********************************************************************************************/
 
     function test_latestAnswer_stalePrice() public {
-        uint256 updatedAt = block.timestamp;
+        setWeethPrice(1.05e18);
 
         vm.warp(block.timestamp + STALENESS_THRESHOLD + 1);
-
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : updatedAt,
-            _updatedAt : updatedAt
-        });
-
         assertEq(oracle.latestAnswer(), 0);
     }
 
     function test_latestAnswer_priceAtThreshold() public {
-        uint256 updatedAt = block.timestamp;
+        setWeethPrice(1.05e18);
 
         vm.warp(block.timestamp + STALENESS_THRESHOLD);
-
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : updatedAt,
-            _updatedAt : updatedAt
-        });
-
         assertEq(oracle.latestAnswer(), 1e18);
     }
 
     function test_latestAnswer_updatedAtZero() public {
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : 0,
-            _updatedAt : 0
-        });
+        setWeethPrice(1.05e18, 0);
 
         assertEq(oracle.latestAnswer(), 0);
-    }
-
-    function test_latestAnswer_works_StartedAtZero() public {
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : 0,
-            _updatedAt : block.timestamp
-        });
-
-        assertEq(oracle.latestAnswer(), 1e18);
-    }
-
-    /**********************************************************************************************/
-    /*** L2 Sequencer Tests                                                                     ***/
-    /**********************************************************************************************/
-
-    function test_latestAnswer_sequencerDown() public {
-        AggregatorV3Mock sequencerFeed = new AggregatorV3Mock(0);
-        // answer = 1 means sequencer is down
-        sequencerFeed.setRoundData({
-            _answer    : 1,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp
-        });
-
-        WEETHRatioOracle l2Oracle = new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(sequencerFeed),
-            GRACE_PERIOD
-        );
-
-        assertEq(l2Oracle.latestAnswer(), 0);
-    }
-
-    function test_latestAnswer_sequencerUpWithinGracePeriod() public {
-        AggregatorV3Mock sequencerFeed = new AggregatorV3Mock(0);
-        // answer = 0 means sequencer is up, but just came back up
-        sequencerFeed.setRoundData({
-            _answer    : 0,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp
-        });
-
-        WEETHRatioOracle l2Oracle = new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(sequencerFeed),
-            GRACE_PERIOD
-        );
-
-        // Still within grace period, should return 0
-        assertEq(l2Oracle.latestAnswer(), 0);
-    }
-
-    function test_latestAnswer_sequencerUpAfterGracePeriod() public {
-        AggregatorV3Mock sequencerFeed = new AggregatorV3Mock(0);
-        uint256 sequencerStartedAt = block.timestamp;
-
-        sequencerFeed.setRoundData({
-            _answer    : 0,
-            _startedAt : sequencerStartedAt,
-            _updatedAt : block.timestamp
-        });
-
-        WEETHRatioOracle l2Oracle = new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(sequencerFeed),
-            GRACE_PERIOD
-        );
-
-        // Warp past grace period
-        vm.warp(block.timestamp + GRACE_PERIOD + 1);
-
-        // Update price feed to be fresh
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp
-        });
-
-        // Should return valid ratio now
-        assertEq(l2Oracle.latestAnswer(), 1e18);
-    }
-
-    function test_latestAnswer_sequencerUpExactlyAtGracePeriod() public {
-        AggregatorV3Mock sequencerFeed = new AggregatorV3Mock(0);
-        uint256 sequencerStartedAt = block.timestamp;
-
-        sequencerFeed.setRoundData({
-            _answer    : 0,
-            _startedAt : sequencerStartedAt,
-            _updatedAt : block.timestamp
-        });
-
-        WEETHRatioOracle l2Oracle = new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(sequencerFeed),
-            GRACE_PERIOD
-        );
-
-        // Warp exactly to grace period (not past it)
-        vm.warp(block.timestamp + GRACE_PERIOD);
-
-        // Update price feed
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp
-        });
-
-        // Should still return 0 (grace period not passed, need > not >=)
-        assertEq(l2Oracle.latestAnswer(), 0);
-    }
-
-    function test_latestAnswer_sequencerStartedAtZero() public {
-        // On Arbitrum, startedAt returns 0 when Sequencer Uptime contract is not initialized
-        AggregatorV3Mock sequencerFeed = new AggregatorV3Mock(0);
-        sequencerFeed.setRoundData({
-            _answer    : 0,
-            _startedAt : 0,
-            _updatedAt : block.timestamp
-        });
-
-        WEETHRatioOracle l2Oracle = new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(sequencerFeed),
-            GRACE_PERIOD
-        );
-
-        // Should return 0 when startedAt is 0 (not initialized)
-        assertEq(l2Oracle.latestAnswer(), 0);
     }
 
     /**********************************************************************************************/
@@ -411,51 +207,13 @@ contract WEETHRatioOracleTest is Test {
 
     function testFuzz_latestAnswer_stalenessCheck(uint256 timeDelta) public {
         timeDelta = bound(timeDelta, STALENESS_THRESHOLD + 1, 365 days);
-        
-        vm.warp(timeDelta+ 1);
 
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : block.timestamp - timeDelta,
-            _updatedAt : block.timestamp - timeDelta 
-        });
+        vm.warp(timeDelta + 1);
+
+        uint256 staleTime = block.timestamp - timeDelta;
+        setWeethPrice(1.05e18, staleTime);
 
         assertEq(oracle.latestAnswer(), 0);
-    }
-
-    function testFuzz_latestAnswer_sequencerGracePeriod(
-        uint256 _gracePeriod,
-        uint256 timePassed
-    ) public {
-        _gracePeriod = bound(_gracePeriod, 1, 24 hours);
-        timePassed   = bound(timePassed,   0, _gracePeriod);
-
-        AggregatorV3Mock sequencerFeed = new AggregatorV3Mock(0);
-        
-        sequencerFeed.setRoundData({
-            _answer    : 0,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp
-        });
-
-        WEETHRatioOracle l2Oracle = new WEETHRatioOracle(
-            address(weeth),
-            address(weethEthFeed),
-            STALENESS_THRESHOLD,
-            address(sequencerFeed),
-            _gracePeriod
-        );
-
-        vm.warp(block.timestamp + timePassed); 
-
-        weethEthFeed.setRoundData({
-            _answer    : 1.05e18,
-            _startedAt : block.timestamp,
-            _updatedAt : block.timestamp // always within _gracePeriod
-        });
-
-        // If timePassed <= gracePeriod, should return 0
-        assertEq(l2Oracle.latestAnswer(), 0);
     }
 
 }
