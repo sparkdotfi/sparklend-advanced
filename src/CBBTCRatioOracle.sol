@@ -45,7 +45,7 @@ contract CBBTCRatioOracle {
         return (cbbtcUSDPrice <= 0 || btcUSDPrice <= 0) ? int256(0) : (cbbtcUSDPrice * 1e18) / btcUSDPrice;
     }
 
-    function decimals() external pure returns (uint8 decimals) {
+    function decimals() external pure returns (uint8) {
         return 18;
     }
 
