@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import { IPriceSource } from "./interfaces/IPriceSource.sol";
 
-interface IRocketTokenRETH {
-    function getExchangeRate() external view returns (uint256);
+interface IRETHLike {
+    function getExchangeRate() external view returns (uint256 rate);
 }
 
 /**
@@ -15,23 +15,23 @@ interface IRocketTokenRETH {
  */
 contract RETHRatioOracle {
 
-    /// @notice rETH/ETH price feed (18 decimals).
-    IPriceSource public immutable rethEthFeed;
-
     /// @notice rETH token contract.
-    IRocketTokenRETH public immutable reth;
+    address public immutable reth;
+
+    /// @notice rETH/ETH price feed (18 decimals).
+    address public immutable rethETHFeed;
 
     constructor(
-        address _reth,
-        address _rethEthFeed
+        address reth_,
+        address rethETHFeed_
     ) {
         require(
-            IPriceSource(_rethEthFeed).decimals() == 18,
+            IPriceSource(rethETHFeed_).decimals() == 18,
             "RETHRatioOracle/invalid-feed-decimals"
         );
 
-        rethEthFeed = IPriceSource(_rethEthFeed);
-        reth        = IRocketTokenRETH(_reth);
+        reth        = reth_;
+        rethETHFeed = rethETHFeed_;
     }
 
     /**
@@ -39,14 +39,16 @@ contract RETHRatioOracle {
      * @return ratio The ratio (1e18 = fair value, < 1e18 = trading at discount).
      */
     function latestAnswer() external view returns (int256 ratio) {
-        int256  rethEthPrice = IPriceSource(rethEthFeed).latestAnswer(); // rETH/ETH
-        uint256 exchangeRate = reth.getExchangeRate(); // rETH/ETH
-
-        if (rethEthPrice <= 0 || exchangeRate == 0) return 0;
+        int256  rethEthPrice = IPriceSource(rethETHFeed).latestAnswer(); // rETH/ETH
+        uint256 exchangeRate = IRETHLike(reth).getExchangeRate(); // rETH/ETH
 
         // rETH/ETH ratio = (rETH/ETH) * 1e18 / (rETH/ETH)
         // Both rethEthPrice and exchangeRate are 18 decimals, result is 1e18
-        ratio = (rethEthPrice * 1e18) / int256(exchangeRate);
+        return (rethEthPrice <= 0 || exchangeRate == 0) ? int256(0) : (rethEthPrice * 1e18) / int256(exchangeRate);
+    }
+
+    function decimals() external pure returns (uint8) {
+        return 18;
     }
 
 }
