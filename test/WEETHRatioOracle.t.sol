@@ -43,8 +43,9 @@ contract WEETHRatioOracleTest is Test {
     /**********************************************************************************************/
 
     function test_constructor() external {
-        assertEq(address(oracle.weeth()),        address(weeth));
-        assertEq(address(oracle.weethETHFeed()), address(weethETHFeed));
+        assertEq(oracle.weeth(),        address(weeth));
+        assertEq(oracle.weethETHFeed(), address(weethETHFeed));
+        assertEq(oracle.decimals(),     18);
     }
 
     function test_constructor_invalidFeedDecimals() external {
@@ -91,14 +92,6 @@ contract WEETHRatioOracleTest is Test {
     function test_latestAnswer_zeroRate() external {
         weeth.setExchangeRate(0);
         assertEq(oracle.latestAnswer(), 0);
-    }
-
-    /**********************************************************************************************/
-    /*** decimals Tests                                                                         ***/
-    /**********************************************************************************************/
-
-    function test_decimals() external {
-        assertEq(oracle.decimals(), 18);
     }
 
     /**********************************************************************************************/
