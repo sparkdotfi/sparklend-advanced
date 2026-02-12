@@ -46,6 +46,10 @@ Please note all these oracles are designed for consumption by `AaveOracle` which
 
 [CappedFallbackRateSource](https://github.com/marsfoundation/sparklend-advanced/blob/master/src/CappedFallbackRateSource.sol): Wraps another rate source, caps the rate and protects against reverts with a fallback value. Used for: ETH market
 
+### Ratio Oracles
+
+All ratio-style oracles are not reporting the actual value of collateral within the protocols, as they are relying on cached prices, but stale price feeds are acceptable here since they are just used for monitoring purposes.
+
 ## Usage
 
 ```bash
