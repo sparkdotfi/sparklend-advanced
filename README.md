@@ -61,3 +61,14 @@ forge build
 ```bash
 forge test
 ```
+
+## Audits
+
+Audit reports are hosted on the auditors' public portfolio pages:
+
+| Auditor | Report | Version | Date |
+| --- | --- | --- | --- |
+| ChainSecurity | [SparkLend Advanced](https://www.chainsecurity.com/security-audit/makerdao-sparklend-advanced/) | v1.5.0, v1.6.0 | 2026-02-17 |
+| Cantina | [Sky: Sparklend Advanced](https://cantina.xyz/portfolio/1d47fd12-7dad-48c9-8230-2dada451f9c6) | v1.6.0 | 2026-02-07 |
+
+ChainSecurity reports are cumulative: each portfolio page hosts the latest version of the report, which covers all previously reviewed versions.
